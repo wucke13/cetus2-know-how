@@ -1,6 +1,5 @@
 #!/usr/bin/env -S awk -f
 
-{FS=" "}
 {switch ($0) {
   case /M106/: # fan on with percent
     match($0,/M106 S([0-9]+)/,a);
@@ -20,3 +19,4 @@
     print $0;
   break
 }}
+
