@@ -14,6 +14,8 @@ print bed.
 Let `h` be the bed leveling height at the middle of the bed and `f`
 be the desired first layer height, then `Z offset` should be `f-h`.
 
+The super slicer config shipped in this repo assumes that you fix the generated
+GCODE using the `fix-gcode.awk` script before you put it on the printer.
 
 # Interesting Commands
 
