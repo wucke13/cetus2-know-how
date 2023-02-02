@@ -52,6 +52,13 @@
               '';
               help = "fix gcode, writing to a new file";
             }
+            {
+              name = "pull-superslicer-config";
+              command = ''
+                cp --recursive -- "$HOME/.config/SuperSlicer/"{filament,print,printer} "$PRJ_ROOT/superslicer-config"
+              '';
+              help = "copies the current SuperSlicer config from XDG_CONFIG_HOME into this repo";
+            }
           ];
         };
       }
