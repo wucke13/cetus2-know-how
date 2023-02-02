@@ -1,4 +1,4 @@
-#!/usr/bin/env -S awk -f
+#!/usr/bin/env -S awk --exec
 
 # adjust cooling fan
 /M106/ {
