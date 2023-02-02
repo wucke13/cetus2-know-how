@@ -17,8 +17,8 @@
         checks = {
           format = pkgs.runCommand "check-awk-posix"
             { buildInputs = [ pkgs.gawk ]; } ''
-            gawk --lint -f ${./fix-gcode-posix.awk} /dev/null
-            gawk --lint=fatal -f ${./fix-gcode-posix.awk} /dev/null
+            gawk --lint -f ${./fix-gcode.awk} /dev/null
+            gawk --lint=fatal -f ${./fix-gcode.awk} /dev/null
             touch $out
           '';
         };
@@ -48,7 +48,7 @@
                   exit
                 }
                 
-                "$PRJ_ROOT/fix-gcode-posix.awk" "$1" > "''${1%%.tsg}_fixed.tsg"
+                "$PRJ_ROOT/fix-gcode.awk" "$1" > "''${1%%.tsg}_fixed.tsg"
               '';
               help = "fix gcode, writing to a new file";
             }
