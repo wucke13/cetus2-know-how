@@ -15,10 +15,15 @@
       in
       {
         checks = {
-          format = pkgs.runCommand "check-awk-posix"
+          awk-lint = pkgs.runCommand "awk-lint"
             { buildInputs = [ pkgs.gawk ]; } ''
             gawk --lint -f ${./fix-gcode.awk} /dev/null
             gawk --lint=fatal -f ${./fix-gcode.awk} /dev/null
+            touch $out
+          '';
+          shellcheck = pkgs.runCommand "shellcheck"
+            { buildInputs = [ pkgs.shellcheck ]; } ''
+            shellcheck ${./post-process.sh}
             touch $out
           '';
         };
