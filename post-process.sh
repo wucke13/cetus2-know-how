@@ -4,6 +4,7 @@ set -ex
 
 SCRIPT_ROOT=$(dirname "$0")
 INPUT_FILE="$1"
+WORK_FILE="${INPUT_FILE}.tmp"
 
 MAGIC_STRING="; file already post-processed using $(basename "$0")"
 
@@ -12,7 +13,6 @@ grep --fixed-strings --line-regexp --quiet -- "$MAGIC_STRING" "$INPUT_FILE" && {
   exit 1
 }
 
-WORK_FILE=$(mktemp)
 awk -f "$SCRIPT_ROOT/fix-gcode.awk" -- "$INPUT_FILE" > "$WORK_FILE"
 
 echo "$MAGIC_STRING" >> "$WORK_FILE"

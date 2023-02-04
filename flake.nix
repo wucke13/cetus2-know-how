@@ -21,6 +21,16 @@
             gawk --lint=fatal -f ${./fix-gcode.awk} /dev/null
             touch $out
           '';
+          nixpkgs-fmt = pkgs.runCommand "nixpkgs-fmt"
+            { buildInputs = [ pkgs.nixpkgs-fmt ]; } ''
+            nixpkgs-fmt --check ${./.}
+            touch $out
+          '';
+          prettier = pkgs.runCommand "prettier"
+            { buildInputs = [ pkgs.nodePackages.prettier ]; } ''
+            prettier --check ${./.}
+            touch $out
+          '';
           shellcheck = pkgs.runCommand "shellcheck"
             { buildInputs = [ pkgs.shellcheck ]; } ''
             shellcheck ${./post-process.sh}
@@ -31,7 +41,14 @@
         devShells.default = pkgs.devshell.mkShell {
           imports = [ "${devshell}/extra/git/hooks.nix" ];
           name = "dev-shell";
-          packages = with pkgs; [ gawk glow super-slicer ];
+          packages = with pkgs; [
+            gawk
+            glow
+            nixpkgs-fmt
+            nodePackages.prettier
+            shellcheck
+            super-slicer
+          ];
           git.hooks = {
             enable = true;
             pre-commit.text = ''
@@ -47,15 +64,9 @@
             {
               name = "fix-gcode";
               command = ''
-                [ $# != 1 ] && {
-                  echo "usage: fix-gcode FILENAME"
-                  echo "will create a file with the suffix _fixed"
-                  exit
-                }
-                
-                "$PRJ_ROOT/fix-gcode.awk" "$1" > "''${1%%.tsg}_fixed.tsg"
+                "$PRJ_ROOT/fix-gcode.awk" "$@"
               '';
-              help = "fix gcode, writing to a new file";
+              help = "fix gcode, writing to stdout";
             }
             {
               name = "pull-superslicer-config";
