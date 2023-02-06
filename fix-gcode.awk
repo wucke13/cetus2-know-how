@@ -1,4 +1,4 @@
-#!/usr/bin/env -S awk --exec
+#!/usr/bin/env -S awk -f
 
 BEGIN {
   # either space or semicolon delimit fields
@@ -34,8 +34,7 @@ BEGIN {
 # adjust extrusion amount and retraction speed
 "G1" == $1 {
   # fail if current extruder is unknown
-  if (!(extruder_idx in extruder_pref))
-    exit 1
+  if (!(extruder_idx in extruder_pref)) exit 1
 
   extrusion_in_mm_for_e1000=38 # change this if necessary
   correction_factor=1000 / extrusion_in_mm_for_e1000 # or change this?
@@ -50,7 +49,6 @@ BEGIN {
     sub("F" extrusion_speed, "F" (extrusion_speed * correction_factor))
 }
 
-# DEF G9 G0 A-30 B-30,G9 X{X} Y{Y} Z{Z} R0 H{H},G0 A30 B30
 # firmware retraction
 "G10" == $1 {
   # only retract once

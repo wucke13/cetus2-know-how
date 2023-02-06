@@ -47,7 +47,6 @@
             nixpkgs-fmt
             nodePackages.prettier
             shellcheck
-            super-slicer
           ];
           git.hooks = {
             enable = true;
@@ -64,7 +63,7 @@
             {
               name = "fix-gcode";
               command = ''
-                "$PRJ_ROOT/fix-gcode.awk" "$@"
+                exec "$PRJ_ROOT/fix-gcode.awk" "$@"
               '';
               help = "fix gcode, writing to stdout";
             }
@@ -74,6 +73,13 @@
                 cp --recursive -- "$HOME/.config/SuperSlicer/"{filament,print,printer} "$PRJ_ROOT/superslicer-config"
               '';
               help = "copies the current SuperSlicer config from XDG_CONFIG_HOME into this repo";
+            }
+            {
+              name = "superslicer";
+              command = ''
+                exec ${pkgs.super-slicer}/bin/superslicer --datadir "$PRJ_ROOT/superslicer-config" "$@"
+              '';
+              help = "launch the SuperSlicer with the configuration from this repo";
             }
           ];
         };

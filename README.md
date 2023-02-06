@@ -3,8 +3,8 @@
 This config is optimized for my specific printer. Be cautious when trying this
 out, it might damage your printer!
 
-The super slicer config shipped in this repo assumes that you fix the generated
-GCODE using the `fix-gcode.awk` script before you put it on the printer.
+The super slicer config shipped in this repo requires a small tweak: `Print Settings` -> `Output options` -> `Post-processing script` needs to be set to
+the absolute path of the `post-process.sh` script in this repo.
 
 # Interesting Commands
 
