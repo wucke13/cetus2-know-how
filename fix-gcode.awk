@@ -23,7 +23,7 @@ BEGIN {
 
   # how far to rise on the Z axis during retraction
   # currently unused
-  retraction_z=0
+  z_hop=0
 }
 
 # set the current extruder
@@ -32,7 +32,7 @@ BEGIN {
 }
 
 # adjust extrusion amount and retraction speed
-"G1" == $1 {
+"G0" == $1 || "G1" == $1 {
   # fail if current extruder is unknown
   if (!(extruder_idx in extruder_pref)) exit 1
 
@@ -43,6 +43,7 @@ BEGIN {
   for (i=1; i<=NF; i++){
     if ($i ~/^E/) extrusion_length=substr($i, 2)
     if ($i ~/^F/) extrusion_speed=substr($i, 2)
+    if ($i ~/^Z/) position["z"]=substr($i,2)
   }
   sub("E" extrusion_length, extruder_pref[extruder_idx] (extrusion_length * correction_factor))
   if (NF==3 && extrusion_length != 0 && extrusion_speed != 0)
@@ -51,24 +52,33 @@ BEGIN {
 
 # firmware retraction
 "G10" == $1 {
+  # terminate if z_hop negative
+  if (z_hop < 0) exit 1
+  # terminate if position["z"] is not set
+  if (!("z" in position)) exit 1
+
   # only retract once
   if (retracted) next
   retracted=1
-  print "G1 A-" retraction " B-" retraction "; retract"
+  print "G1", "Z" (position["z"] + z_hop), "A" (-retraction), "B" (-retraction) "; retract"
   next
 }
 
 # firmware detraction
 "G11" == $1 {
+  # terminate if position["z"] is not set
+  if (!("z" in position)) exit 1
+
   # only unretract once
   if (!retracted) next
   retracted=0
 
   # to avoid small blobs unretract only partial on the active extruder
   if (extruder_idx == 1)
-    print "G1 A" (retraction + unretraction_extra_length) " B" retraction "; unretract"
+    print "G1", "Z" position["z"], "A" (retraction + unretraction_extra_length), "B" retraction "; unretract"
   else if (extruder_idx == 2)
-    print "G1 A" retraction " B" (retraction + unretraction_extra_length) "; unretract"
+    print "G1", "Z" position["z"], "A" retraction, "B" (retraction + unretraction_extra_length) "; unretract"
+
   next
 }
 
@@ -81,7 +91,7 @@ BEGIN {
 # adjust cooling fan
 "M106" == $1 {
   for (i=1; i<=NF; i++) if ($i ~/S/) fan_percent=substr($i, 2)
-  print "M42 P14 S" int(511 * fan_percent / 100) "; set cooling fan to " fan_percent "%"
+  print "M42", "P14", "S" int(511 * fan_percent / 100) "; set cooling fan to", fan_percent "%"
 }
 
 # stop cooling fan
@@ -93,7 +103,7 @@ BEGIN {
 "M207" == $1 {
   for (i=1; i<=NF; i++){
     if ($i ~/^S/) retraction=substr($i, 2)
-    if ($i ~/^Z/) retraction_z=substr($i, 2)
+    if ($i ~/^Z/) z_hop=substr($i, 2)
   }
   next
 }
