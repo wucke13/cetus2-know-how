@@ -60,7 +60,8 @@ BEGIN {
   # only retract once
   if (retracted) next
   retracted=1
-  print "G1", "Z" (position["z"] + z_hop), "A" (-retraction), "B" (-retraction) "; retract"
+  print "G0", "A" (-retraction), "B" (-retraction) "; retract"
+  print "G0", "Z" (position["z"] + z_hop) "; z hop"
   next
 }
 
@@ -75,9 +76,9 @@ BEGIN {
 
   # to avoid small blobs unretract only partial on the active extruder
   if (extruder_idx == 1)
-    print "G1", "Z" position["z"], "A" (retraction + unretraction_extra_length), "B" retraction "; unretract"
+    print "G0", "Z" position["z"], "A" (retraction + unretraction_extra_length), "B" retraction "; unretract"
   else if (extruder_idx == 2)
-    print "G1", "Z" position["z"], "A" retraction, "B" (retraction + unretraction_extra_length) "; unretract"
+    print "G0", "Z" position["z"], "A" retraction, "B" (retraction + unretraction_extra_length) "; unretract"
 
   next
 }
