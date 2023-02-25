@@ -36,7 +36,7 @@ BEGIN {
   # fail if current extruder is unknown
   if (!(extruder_idx in extruder_pref)) exit 1
 
-  extrusion_in_mm_for_e1000=38 # change this if necessary
+  extrusion_in_mm_for_e1000=38.5 # change this if necessary
   correction_factor=1000 / extrusion_in_mm_for_e1000 # or change this?
   extrusion_length=0
   extrusion_speeed=0

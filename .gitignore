@@ -1,2 +1,4 @@
 .direnv
-superslicer-config/cache/
+prusa-slicer-config/cache/
+result
+result-*

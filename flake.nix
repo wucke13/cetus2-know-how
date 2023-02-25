@@ -1,5 +1,6 @@
 {
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     devshell.url = "github:numtide/devshell";
   };
@@ -69,18 +70,11 @@
                 help = "fix gcode, writing to stdout";
               }
               {
-                name = "pull-superslicer-config";
+                name = "prusa-slicer";
                 command = ''
-                  cp --recursive -- "$HOME/.config/SuperSlicer/"{filament,print,printer} "$PRJ_ROOT/superslicer-config"
+                  exec ${pkgs.prusa-slicer}/bin/prusa-slicer --datadir "$PRJ_ROOT/prusa-slicer-config" "$@"
                 '';
-                help = "copies the current SuperSlicer config from XDG_CONFIG_HOME into this repo";
-              }
-              {
-                name = "superslicer";
-                command = ''
-                  exec ${pkgs.super-slicer}/bin/superslicer --datadir "$PRJ_ROOT/superslicer-config" "$@"
-                '';
-                help = "launch the SuperSlicer with the configuration from this repo";
+                help = "launch the PrusaSlicer with the configuration from this repo";
               }
             ];
           };
