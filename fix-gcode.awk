@@ -5,11 +5,11 @@ BEGIN {
   FS=" |;"
 
   # prefix for extrusion length on the different extruders
-  extruder_pref[1]="A"
-  extruder_pref[2]="B"
+  extruder_pref[0]="A"
+  extruder_pref[1]="B"
 
   # index of the current extruder, 0 means not set
-  extruder_idx=0
+  extruder_idx=-1
 
   # whether we are retracted currently
   retracted=0
@@ -19,7 +19,7 @@ BEGIN {
 
   # extra length to add while unretracting
   # only applied to active extruder
-  unretraction_extra_length=-10
+  unretraction_extra_length=0
 
   # how far to rise on the Z axis during retraction
   # currently unused
@@ -27,8 +27,10 @@ BEGIN {
 }
 
 # set the current extruder
-/^SET 23/ {
-  extruder_idx=int($3)
+$1 ~/^T[01]/ {
+  extruder_idx=int(substr($1, 2))
+  print "SET", "23", extruder_idx + 1, ";", $0
+  next
 }
 
 # adjust extrusion amount and retraction speed
@@ -36,7 +38,7 @@ BEGIN {
   # fail if current extruder is unknown
   if (!(extruder_idx in extruder_pref)) exit 1
 
-  extrusion_in_mm_for_e1000=38.5 # change this if necessary
+  extrusion_in_mm_for_e1000=36 # change this if necessary
   correction_factor=1000 / extrusion_in_mm_for_e1000 # or change this?
   extrusion_length=0
   extrusion_speeed=0
@@ -75,9 +77,9 @@ BEGIN {
   retracted=0
 
   # to avoid small blobs unretract only partial on the active extruder
-  if (extruder_idx == 1)
+  if (extruder_idx == 0)
     print "G0", "Z" position["z"], "A" (retraction + unretraction_extra_length), "B" retraction "; unretract"
-  else if (extruder_idx == 2)
+  else if (extruder_idx == 1)
     print "G0", "Z" position["z"], "A" retraction, "B" (retraction + unretraction_extra_length) "; unretract"
 
   next
@@ -106,12 +108,14 @@ BEGIN {
     if ($i ~/^S/) retraction=substr($i, 2)
     if ($i ~/^Z/) z_hop=substr($i, 2)
   }
+  print ";", $0
   next
 }
 
 # set unretraction length
 "M208" == $1 {
   for (i=1; i<=NF; i++) if ($i ~/^S/) unretraction_extra_length=substr($i, 2)
+  print ";", $0
   next
 }
 
