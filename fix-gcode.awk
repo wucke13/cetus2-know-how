@@ -9,7 +9,7 @@ BEGIN {
   extruder_pref[1]="B"
 
   # index of the current extruder, 0 means not set
-  extruder_idx=-1
+  current_extruder=-1
 
   # whether we are retracted currently
   retracted=0
@@ -28,60 +28,57 @@ BEGIN {
 
 # set the current extruder
 $1 ~/^T[01]/ {
-  extruder_idx=int(substr($1, 2))
-  print "SET", "23", extruder_idx + 1, ";", $0
+  current_extruder=int(substr($1, 2))
+  print "SET", "23", current_extruder + 1, ";", $0
   next
 }
 
 # adjust extrusion amount and retraction speed
 "G0" == $1 || "G1" == $1 {
   # fail if current extruder is unknown
-  if (!(extruder_idx in extruder_pref)) exit 1
+  if (!(current_extruder in extruder_pref)) exit 1
 
-  extrusion_in_mm_for_e1000=36 # change this if necessary
-  correction_factor=1000 / extrusion_in_mm_for_e1000 # or change this?
+  correction_factor=25.677961
   extrusion_length=0
   extrusion_speeed=0
   for (i=1; i<=NF; i++){
     if ($i ~/^E/) extrusion_length=substr($i, 2)
     if ($i ~/^F/) extrusion_speed=substr($i, 2)
+    if ($i ~/^X/) position["x"]=substr($i,2)
+    if ($i ~/^Y/) position["y"]=substr($i,2)
     if ($i ~/^Z/) position["z"]=substr($i,2)
   }
-  sub("E" extrusion_length, extruder_pref[extruder_idx] (extrusion_length * correction_factor))
+  sub("E" extrusion_length, extruder_pref[current_extruder] (extrusion_length * correction_factor))
   if (NF==3 && extrusion_length != 0 && extrusion_speed != 0)
     sub("F" extrusion_speed, "F" (extrusion_speed * correction_factor))
+  if(retracted)
+    sub("Z" position["z"], "Z" (position["z"] + z_hop))
 }
 
 # firmware retraction
 "G10" == $1 {
   # terminate if z_hop negative
   if (z_hop < 0) exit 1
-  # terminate if position["z"] is not set
-  if (!("z" in position)) exit 1
 
   # only retract once
   if (retracted) next
   retracted=1
-  print "G0", "A" (-retraction), "B" (-retraction) "; retract"
-  print "G0", "Z" (position["z"] + z_hop) "; z hop"
+  print "G0", "A" (-retraction), "B" (-retraction), ("z" in position ? "Z" (position["z"] + z_hop) : ""), "; retract"
   next
+}
+
+# helper function to determine the unretraction length
+function unretraction(extruder) {
+  return retraction + (extruder == current_extruder ? unretraction_extra_length : 0)
 }
 
 # firmware detraction
 "G11" == $1 {
-  # terminate if position["z"] is not set
-  if (!("z" in position)) exit 1
-
   # only unretract once
   if (!retracted) next
   retracted=0
 
-  # to avoid small blobs unretract only partial on the active extruder
-  if (extruder_idx == 0)
-    print "G0", "Z" position["z"], "A" (retraction + unretraction_extra_length), "B" retraction "; unretract"
-  else if (extruder_idx == 1)
-    print "G0", "Z" position["z"], "A" retraction, "B" (retraction + unretraction_extra_length) "; unretract"
-
+  print "G0", "A" unretraction(0), "B" unretraction(1), ("z" in position ? "Z" position["z"] : ""), "; unretract"
   next
 }
 
